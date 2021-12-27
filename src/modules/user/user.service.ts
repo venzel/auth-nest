@@ -1,10 +1,11 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { CreateUserDto } from './dtos/create.user.dto';
 import { ResponseListUserDto } from './dtos/response.list.user.dto';
 import { ResponseUserDto } from './dtos/response.user.dto';
 import { UpdateUserDto } from './dtos/update.user.dto';
+import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { CREATED, UPDATED, LISTED, SHOWED, DELETED } from './user.utils';
 
@@ -27,16 +28,18 @@ export class UserService {
         };
     }
 
-    async updateUser(id: string, upateUserDto: UpdateUserDto): Promise<ResponseUserDto> {
+    async updateUser(dto: UpdateUserDto, user: User, id: string): Promise<ResponseUserDto> {
         const existsUser = await this.userRepository.findOneById(id);
 
         if (!existsUser) {
             throw new NotFoundException('User not found!');
         }
 
-        const { name } = upateUserDto;
+        if (user.id !== existsUser.id) {
+            throw new NotAcceptableException('It is not possible to change data of another user!');
+        }
 
-        Object.assign(existsUser, { name });
+        Object.assign(existsUser, { name: dto.name });
 
         await this.userRepository.save(existsUser);
 
