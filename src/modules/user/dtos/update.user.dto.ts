@@ -1,7 +1,8 @@
-import { IsNotEmpty, MaxLength } from 'class-validator';
+import { IsNotEmpty, Matches, MaxLength } from 'class-validator';
 
 export class UpdateUserDto {
-    @MaxLength(20, { message: 'O nome deve ter menos de 20 caracteres!' })
-    @IsNotEmpty({ message: 'Informe o nome do usuário!' })
+    @Matches(/[a-zA-Z0-9_-]{2,20}/)
+    @MaxLength(20, { message: 'O nome deve conter no máximo 20 caracteres!' })
+    @IsNotEmpty({ message: 'Informe um nome!' })
     readonly name: string;
 }
