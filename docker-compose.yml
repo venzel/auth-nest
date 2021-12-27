@@ -1,0 +1,12 @@
+version: '3'
+services:
+    auth-db-postgres:
+        image: postgres:11
+        container_name: auth-db-nest
+        restart: always
+        environment:
+            - POSTGRES_DB=auth
+            - POSTGRES_USER=admin
+            - POSTGRES_PASSWORD=123456
+        ports:
+            - 5432:5432
