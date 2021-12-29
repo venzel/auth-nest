@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './configs/winston.config';
@@ -13,6 +14,7 @@ import { mailerConfig } from './configs/mailer.config';
 
 @Module({
     imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRoot(typeOrmConfig),
         WinstonModule.forRoot(winstonConfig),
         MailerModule.forRoot(mailerConfig),

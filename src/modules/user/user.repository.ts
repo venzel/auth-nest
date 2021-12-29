@@ -1,12 +1,14 @@
-import { EntityRepository, getRepository, Repository } from 'typeorm';
+import { InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-
+import { EntityRepository, getRepository, Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create.user.dto';
 import { CredentialsDto } from './dtos/credentials.dto';
-import { User } from './user.entity';
-import { InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { FindUsersQueryDto } from './dtos/find.users.query.dto';
+import { ResponseFindUsersDto } from './dtos/response.find.users.dto';
+import { User } from './user.entity';
+import { UserMessage } from './user.message.enum';
+import { UserRole } from './user.role.enum';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
@@ -17,7 +19,7 @@ export class UserRepository extends Repository<User> {
         this.repository = getRepository<User>(User);
     }
 
-    async findUsers(queryDto: FindUsersQueryDto): Promise<{ users: User[]; total: number }> {
+    async findUsers(queryDto: FindUsersQueryDto): Promise<ResponseFindUsersDto> {
         queryDto.status = !queryDto.status ? true : queryDto.status;
         queryDto.page = queryDto.page < 1 || !queryDto.page ? 1 : queryDto.page;
         queryDto.limit = queryDto.limit > 100 || !queryDto.limit ? 100 : queryDto.limit;
@@ -37,8 +39,7 @@ export class UserRepository extends Repository<User> {
         }
 
         if (role) {
-            role = role.toUpperCase();
-            query.andWhere('user.role = :role', { role });
+            query.andWhere('user.role = :role', { role: role.toUpperCase() });
         }
 
         query.skip((queryDto.page - 1) * queryDto.limit);
@@ -77,10 +78,9 @@ export class UserRepository extends Repository<User> {
         });
     }
 
-    async createUser(createUserDto: CreateUserDto): Promise<User> {
+    async createUser(createUserDto: CreateUserDto, role: UserRole): Promise<User> {
         const { name, email, password } = createUserDto;
 
-        const role = 'USER';
         const confirmationToken = crypto.randomBytes(32).toString('hex');
         const salt = await bcrypt.genSalt();
         const hashPassword = await bcrypt.hash(password, salt);
@@ -97,7 +97,7 @@ export class UserRepository extends Repository<User> {
 
             return user;
         } catch (_) {
-            throw new InternalServerErrorException('Error saving to database!');
+            throw new InternalServerErrorException(UserMessage.INTERNAL_ERROR);
         }
     }
 
@@ -107,7 +107,7 @@ export class UserRepository extends Repository<User> {
         const user = await this.repository.findOne({ email, status: true });
 
         if (!user) {
-            throw new UnauthorizedException('Credenciais inválidas!');
+            throw new UnauthorizedException(UserMessage.UNAUTHORIZED);
         }
 
         const checkPassword = await user.checkPassword(password);
@@ -117,15 +117,11 @@ export class UserRepository extends Repository<User> {
 
     async saveUser(user: User): Promise<User> {
         try {
-            const currentDate = new Date();
+            Object.assign(user, { updatedAt: new Date() });
 
-            user.updatedAt = currentDate;
-
-            await this.repository.save(user);
-
-            return user;
+            return await this.repository.save(user);
         } catch (_) {
-            throw new InternalServerErrorException('Error saving to database!');
+            throw new InternalServerErrorException(UserMessage.INTERNAL_ERROR);
         }
     }
 
@@ -135,7 +131,7 @@ export class UserRepository extends Repository<User> {
 
             return user;
         } catch (_) {
-            throw new InternalServerErrorException('Error saving to database!');
+            throw new InternalServerErrorException(UserMessage.INTERNAL_ERROR);
         }
     }
 }

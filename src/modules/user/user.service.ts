@@ -3,18 +3,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { CreateUserDto } from './dtos/create.user.dto';
 import { FindUsersQueryDto } from './dtos/find.users.query.dto';
+import { ResponseFindUsersDto } from './dtos/response.find.users.dto';
 import { ResponseListUserDto } from './dtos/response.list.user.dto';
 import { ResponseUserDto } from './dtos/response.user.dto';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { User } from './user.entity';
+import { UserMessage } from './user.message.enum';
 import { UserRepository } from './user.repository';
-import { CREATED, UPDATED, LISTED, SHOWED, DELETED } from './user.utils';
+import { UserRole } from './user.role.enum';
 
 @Injectable()
 export class UserService {
     constructor(@InjectRepository(UserRepository) private userRepository: UserRepository) {}
 
-    async findUsers(queryDto: FindUsersQueryDto): Promise<{ users: User[]; total: number }> {
+    async findUsers(queryDto: FindUsersQueryDto): Promise<ResponseFindUsersDto> {
         return await this.userRepository.findUsers(queryDto);
     }
 
@@ -22,35 +24,35 @@ export class UserService {
         const existsUser = await this.userRepository.findOneByEmail(createUserDto.email);
 
         if (existsUser) {
-            throw new ConflictException('User email already exists!');
+            throw new ConflictException(UserMessage.CONFLICT);
         }
 
-        const user = await this.userRepository.createUser(createUserDto);
+        const user = await this.userRepository.createUser(createUserDto, UserRole.ADMIN);
 
         return {
             user,
-            message: CREATED,
+            message: UserMessage.CREATED,
         };
     }
 
-    async updateUser(dto: UpdateUserDto, user: User, id: string): Promise<ResponseUserDto> {
+    async updateUser(updateUserDto: UpdateUserDto, user: User, id: string): Promise<ResponseUserDto> {
         const existsUser = await this.userRepository.findOneById(id);
 
         if (!existsUser) {
-            throw new NotFoundException('User not found!');
+            throw new NotFoundException(UserMessage.NOT_FOUND);
         }
 
         if (user.id !== existsUser.id) {
-            throw new UnprocessableEntityException('It is not possible to change data of another user!');
+            throw new UnprocessableEntityException(UserMessage.UNPROCESSABLE_ENTITY);
         }
 
-        Object.assign(existsUser, { name: dto.name });
+        Object.assign(existsUser, { name: updateUserDto.name });
 
         await this.userRepository.save(existsUser);
 
         return {
             user: existsUser,
-            message: UPDATED,
+            message: UserMessage.UPDATED,
         };
     }
 
@@ -59,7 +61,7 @@ export class UserService {
 
         return {
             users,
-            message: LISTED,
+            message: UserMessage.LISTED,
         };
     }
 
@@ -67,12 +69,12 @@ export class UserService {
         const existsUser = await this.userRepository.findOneById(id);
 
         if (!existsUser) {
-            throw new NotFoundException('User not found!');
+            throw new NotFoundException(UserMessage.NOT_FOUND);
         }
 
         return {
             user: existsUser,
-            message: SHOWED,
+            message: UserMessage.SHOWED,
         };
     }
 
@@ -80,14 +82,14 @@ export class UserService {
         const existsUser = await this.userRepository.findOneById(id);
 
         if (!existsUser) {
-            throw new NotFoundException('User not found!');
+            throw new NotFoundException(UserMessage.NOT_FOUND);
         }
 
         await this.userRepository.deleteUser(existsUser);
 
         return {
             user: existsUser,
-            message: DELETED,
+            message: UserMessage.DELETED,
         };
     }
 }

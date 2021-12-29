@@ -1,11 +1,6 @@
 import { BaseEntity, Entity, Unique, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
-export enum UserRole {
-    ADMIN = 'ADMIN',
-    USER = 'USER',
-}
-
 @Entity()
 @Unique(['email'])
 export class User extends BaseEntity {

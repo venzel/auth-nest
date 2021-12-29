@@ -1,7 +1,7 @@
 import { IsEmail, IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class CreateUserDto {
-    @Matches(/[a-zA-Z0-9_-]{2,20}/)
+    @Matches(/[a-zA-Z0-9_-]{2,20}/, { message: 'Insira um nome válido!' })
     @MaxLength(20, { message: 'O nome deve conter no máximo 20 caracteres!' })
     @IsNotEmpty({ message: 'Informe um nome!' })
     readonly name: string;

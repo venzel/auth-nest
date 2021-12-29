@@ -4,14 +4,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { User } from '../user/user.entity';
+import { UserMessage } from '../user/user.message.enum';
 import { UserRepository } from '../user/user.repository';
+import { tokenSecret } from '../../configs/geral.config';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor(@InjectRepository(UserRepository) private userRepository: UserRepository) {
+    constructor(
+        @InjectRepository(UserRepository)
+        private userRepository: UserRepository
+    ) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            secretOrKey: 'super-secret',
+            secretOrKey: tokenSecret,
         });
     }
 
@@ -23,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         });
 
         if (!user) {
-            throw new UnauthorizedException('Usuário não encontrado!');
+            throw new UnauthorizedException(UserMessage.UNAUTHORIZED);
         }
 
         return user;
