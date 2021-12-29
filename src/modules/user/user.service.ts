@@ -20,8 +20,14 @@ export class UserService {
         return await this.userRepository.findUsers(queryDto);
     }
 
-    async createUser(createUserDto: CreateUserDto): Promise<ResponseUserDto> {
+    async createUserAdmin(createUserDto: CreateUserDto): Promise<ResponseUserDto> {
         const existsUser = await this.userRepository.findOneByEmail(createUserDto.email);
+
+        const { password, passwordConfirmation } = createUserDto;
+
+        if (password !== passwordConfirmation) {
+            throw new UnprocessableEntityException(UserMessage.UNPROCESSABLE);
+        }
 
         if (existsUser) {
             throw new ConflictException(UserMessage.CONFLICT);

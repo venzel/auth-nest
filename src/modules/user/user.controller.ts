@@ -20,37 +20,37 @@ export class UserController {
 
     @Get('/find')
     @Role(UserRole.ADMIN)
-    async findUsers(@Query() queryDto: FindUsersQueryDto) {
+    async findUsersHandle(@Query() queryDto: FindUsersQueryDto) {
         return await this.userService.findUsers(queryDto);
     }
 
     @Post()
     @Role(UserRole.ADMIN)
-    async createHandle(@Body() createUserDto: CreateUserDto): Promise<ResponseUserDto> {
-        return await this.userService.createUser(createUserDto);
+    async createUserAdminHandle(@Body() createUserDto: CreateUserDto): Promise<ResponseUserDto> {
+        return await this.userService.createUserAdmin(createUserDto);
     }
 
     @Put(':id')
     @Role(UserRole.ADMIN)
-    async updateHandle(@Body() dto: UpdateUserDto, @GetUser() user: User, @Param('id') id: string): Promise<ResponseUserDto> {
+    async updateUserHandle(@Body() dto: UpdateUserDto, @GetUser() user: User, @Param('id') id: string): Promise<ResponseUserDto> {
         return await this.userService.updateUser(dto, user, id);
     }
 
     @Get()
     @Role(UserRole.ADMIN)
-    async listHandle(): Promise<ResponseListUserDto> {
+    async listUsersHandle(): Promise<ResponseListUserDto> {
         return await this.userService.listUsers();
     }
 
     @Get(':id')
     @Role(UserRole.ADMIN)
-    async showHandle(@Param('id') id: string): Promise<ResponseUserDto> {
+    async showUserHandle(@Param('id') id: string): Promise<ResponseUserDto> {
         return await this.userService.showUser(id);
     }
 
     @Delete(':id')
     @Role(UserRole.ADMIN)
-    async deleteHandle(@Param('id') id: string): Promise<ResponseUserDto> {
+    async deleteUserHandle(@Param('id') id: string): Promise<ResponseUserDto> {
         return await this.userService.deleteUser(id);
     }
 }
